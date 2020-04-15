@@ -16,7 +16,7 @@ const render = require("./lib/htmlRenderer");
 
 
 
-async function askQustions() {
+async function askQuestions() {
     try {
         const employee = await inquirer.prompt([
             {
@@ -85,23 +85,41 @@ async function askQustions() {
     }
 }
 
-askQustions().then((employee) => {
-    const employeeObjects = [employee];
-    console.log(employee);
-    const result = render(employeeObjects);
-    console.log(result);
-
-    fs.writeFile(outputPath, result, function (err) {
-
-        if (err) {
-            return console.log(err);
+askQuestions().then(
+    async (employee) => {
+        const employeeObjects = [employee];
+        try {
+            const nextEmployee = await inquirer.prompt([
+                {
+                    type: "list",
+                    message: "Would you like to add another employee?",
+                    name: "another",
+                    choices: [
+                        "yes",
+                        "no"
+                    ]
+                },
+            ]);
+            if (nextEmployee.another == "yes") {
+                employee = await askQuestions();
+                employeeObjects.push(employee);
+            }
+        } catch (err) {
+            console.log(err);
         }
 
-    });
-});
+        const result = render(employeeObjects);
+        console.log(result);
 
+        fs.writeFile(outputPath, result, function (err) {
 
+            if (err) {
+                return console.log(err);
+            }
 
+        });
+    }
+)
 
 
 // After the user has input all employees desired, call the `render` function (required
